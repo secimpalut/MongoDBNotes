@@ -1,0 +1,78 @@
+db.persons.insertMany([
+    {
+        "_id": "Prsn101",
+        "firstName": "Joe",
+        "lastName": "Mongo",
+        "groups": [
+            "Grp11",
+            "Grp12"
+        ]
+    },
+    {
+        "_id": "Prsn102",
+        "firstName": "Sally",
+        "lastName": "Mongo",
+        "groups": [
+            "Grp11"
+        ]
+    }
+]);
+
+db.groups.insertMany([
+    {
+        "_id": "Grp11",
+        "groupName": "mongoDB User",
+        "persons": [
+            "Prsn101",
+            "Prsn102"
+        ]
+    },
+    {
+        "_id": "Grp12",
+        "groupName": "mongoDB Administrator",
+        "persons": [
+            "Prsn101"
+        ]
+    }
+]);
+
+
+EXAMPLE: Get all persons in the "mongoDB User" group
+        db.persons.find(
+          {"groups":"Grp11"},
+          {_id:0, groups:0}
+        );
+
+EXAMPLE: Get all persons in the 
+        "mongoDB Administrator" group
+
+        db.persons.find(
+            {"groups":"Grp12"},
+            {_id:0, groups:0}
+        );
+
+EXAMPLE: Get all groups for "Joe Mongo"
+        db.groups.find(
+            {"persons":"Prsn101"},
+            {_id:0,person:0}
+        );
+
+EXAMPLE: Get all groups for "Sally Mongo"
+        db.groups.find(
+            {"persons":"Prsn102"},
+            {_id:0,person:0}
+        );
+
+
+========> REPLICATION  <========
+
+NOTE 1: Replication is a process to synchronize data across multiple servers
+ NOTE 2: Replication increases data availability
+ NOTE 3: Replication protects data from different kind of problems like server destroying.
+ NOTE 4: By using replication, DB service can work constantly
+ NOTE 5: Most of the times 3 replications are enough but if you want you can create more.
+         Every server is called "Node" as well
+ NOTE 6: When you update or maintain DB, everytime primary one is selected and one of the secondary one is assigned to be primary.
+         When you complete the update or maintainance, all updates are reflected to the other copies. Updated one is assigned as secondary node.
+
+========> GridFS(Grid File System)  <========

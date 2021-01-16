@@ -1,0 +1,213 @@
+db.grades.insertMany([
+{ _id: 6305, name : "A. MacDyver", "assignment" : 5, "points" : 24 },
+{ _id: 6308, name : "B. Batlock", "assignment" : 3, "points" : 22 },
+{ _id: 6312, name : "M. Tagnum", "assignment" : 5, "points" : 30 },
+{ _id: 6319, name : "R. Stiles", "assignment" : 2, "points" : 12 },
+{ _id: 6322, name : "A. MacDyver", "assignment" : 2, "points" : 14 },
+{ _id: 6234, name : "R. Stiles", "assignment" : 1, "points" : 10 }
+]);
+​
+EXAMPLE: Find the sum of all points of the documents whose names are starting with "A"
+var pipeline = [{$match:{name:{$regex:/^A/}}}, {$group:{_id:null, totalPoints:{$sum:"$points"}}}];
+db.grades.aggregate(pipeline);
+​
+EXAMPLE: Find the sum of all points of all documents
+var pipeline = [{$match:{}}, {$group:{_id:null, totalPoints:{$sum:"$points"}}}];
+db.grades.aggregate(pipeline);
+​
+EXAMPLE: Find the sum of all points of the documents whose assignments are less than 4
+var pipeline = [{$match:{assignment:{$lt:4}}}, {$group:{_id:null, totalPoints:{$sum:"$points"}}}];
+db.grades.aggregate(pipeline);
+​
+                                       How to Count the documents
+​
+EXAMPLE: Find the number of documents whose points are less than 19
+//1.Way: Use find() + count()
+db.grades.find({points:{$lt:19}}).count();
+​
+//2.Way: Use count() with condition
+db.grades.count({points:{$lt:19}});
+​
+//3.Way: Use aggregate()
+var pipeline = [{$match:{points:{$lt:19}}}, {$count:"Low points"}];
+db.grades.aggregate(pipeline);
+​
+Note: Create an "article" collection inside the "inventory" database, then insert documents
+db.articles.insertMany(
+[{"author" : "dave", "score" : 80, "views" : 100 },
+{"author" : "dave", "score" : 85, "views" : 521 },
+{"author" : "ahn", "score" : 60, "views" : 1000 },
+{"author" : "li", "score" : 55, "views" : 5000 },
+{"author" : "annT", "score" : 60, "views" : 50 },
+{"author" : "li", "score" : 94, "views" : 999 },
+{"author" : "ty", "score" : 95, "views" : 1000 }]);
+​
+EXAMPLE: Find the number of documents whose score is less than 70 OR greater than 90
+//1.Way: Use find() + count()
+db.articles.find({$or:[{score:{$lt:70}}, {score:{$gt:90}}]}).count();
+​
+//2.Way: Use count() with condition
+db.articles.count({$or:[{score:{$lt:70}}, {score:{$gt:90}}]});
+​
+//3.Way: Use aggregate()
+var pipeline = [{$match:{$or:[{score:{$lt:70}}, {score:{$gt:90}}]}}, {$count:"Mins and Maxs"}];
+db.articles.aggregate(pipeline);
+​
+EXAMPLE: Find the total number of views of documents whose score is less than 80 AND greater than 50
+//1.Way: Use find() + count()
+db.articles.find({$and:[{score:{$lt:80}}, {score:{$gt:50}}]}).count();
+​
+//2.Way: Use count() with condition
+db.articles.count({$and:[{score:{$lt:80}}, {score:{$gt:50}}]});
+​
+//3.Way: Use aggregate()
+var pipeline = [{$match:{$and:[{score:{$lt:80}}, {score:{$gt:50}}]}}, {$count:"Middle scores"}];
+db.articles.aggregate(pipeline);
+​
+                    How to add new fields into report
+​
+Note: Create an "accounting" collection inside the "inventory" database, then insert documents
+db.accounting.insertMany(
+[{"name" : "dave", "expense":[-80, -40, -50, -120], "earn":[100, 150]},
+{"name" : "dave", "expense" : [-60, -30, -20], "earn" : [200, 50, 130] },
+{"name" : "ahn", "expense" : [-80, -40, -50], "earn" : [300, 450] },
+{"name" : "li", "expense" : [-80, -120], "earn" : [500, 50, 70, 10] },
+{"name" : "annT", "expense" : [-140, -50, -120], "earn" : [400] },
+{"name" : "li", "expense" : [-120], "earn" : [22, 375, 65] },
+{"name" : "ty", "expense" : [-180, -40, -70, -12], "earn" : [500, 650, 400]}]);   
+​
+EXAMPLE: Display the total expense, total earn, and net balance of every person in the existing documents.
+var pipeline = [
+                {$addFields:{totalExpense:{$sum:"$expense"}, totalEarn:{$sum:"$earn"}}},
+                {$addFields:{netBalance:{$add:["$totalExpense", "$totalEarn"]}}},
+                {$sort:{netBalance:-1}},
+                {$project:{_id:0, expense:0, earn:0}}
+               ];
+db.accounting.aggregate(pipeline);    
+​
+                                How to create a copy of a collection in DB
+​
+EXAMPLE: Create a copy of accounting collection in database with a new name  
+//1. Style
+var pipeline = [{$merge:{into:"accountingCopy"}}];   
+db.accounting.aggregate(pipeline);
+​
+//2.Style
+Note: If you want to create new "_id"s for copied documents, you should type "{$project:{_id:0}}"
+      inside the pipeline. Otherwise, MongoDB wil use the same "_id"s for the copied document with the original ones
+​
+var pipeline = [{$project:{_id:0}}, {$merge:{into:"accountingCopy"}}];   
+db.accounting.aggregate(pipeline); 
+​
+//3.Style
+var pipeline = [{$merge:{into:"grades"}}];   
+db.accounting.aggregate(pipeline);
+​
+Note: Create an "stories" collection inside the "inventory" database, then insert documents
+db.stories.insertMany(
+[{"author" : "dave", "score" : 75, "views" : 200 },
+{"author" : "chris", "score" : 90, "views" : 100 },
+{"author" : "dave", "score" : 35, "views" : 3000 },
+{"author" : "mary", "score" : 80, "views" : 350 },
+{"author" : "dave", "score" : 54, "views" : 333 },
+{"author" : "mary", "score" : 97, "views" : 2000 }]);
+​
+EXAMPLE: List all story author names?
+//1.Way: Not recommended because there is repetation
+db.stories.aggregate([{$project:{score:0, views:0, _id:0}}]);
+​
+//2.Way: Recommended use distinct()
+db.stories.distinct("author");
+​
+EXAMPLE: Find the number of stories Dave and Mary wrote separately
+//1.Way: Not recommended
+db.stories.aggregate([{$match:{author:"dave"}}, {$count:"Dave"}]);
+db.stories.aggregate([{$match:{author:"mary"}}, {$count:"Mary"}]);
+​
+//2.Way: Use $facet()
+var pipeline = [{$facet:{
+                            "DaveStories": [{$match:{author:"dave"}}, {$count:"Dave"}],
+                            "MaryStories": [{$match:{author:"mary"}}, {$count:"Mary"}]
+                        }
+              },
+              {$project:{
+                           "DaveStories":{$arrayElemAt:["$DaveStories.Dave", 0]},
+                           "MaryStories":{$arrayElemAt:["$MaryStories.Mary", 0]}
+                        }
+              }
+              ];
+db.stories.aggregate(pipeline);   
+​
+                            How to do multiple commands in a single method
+​
+EXAMPLE: a)Insert {"author" : "mark", "score" : 55, "views" : 555 }; 
+         b)Update dave's score to 55
+         c)Replace {"author" : "chris tien", "score" : 55} for {"author" : "chris", "score" : 90, "views" : 100 }
+         d)Delete the document whose author is "mary"   
+​
+db.stories.bulkWrite([
+                        {insertOne:{"document":{"author" : "mark", "score" : 55, "views" : 555 }}},
+                        {updateOne:{"filter":{author:"dave"}, "update":{$set:{score:55}}}},
+                        {replaceOne:{"filter":{author:"chris"}, "replacement":{"author" : "chris tien", "score" : 55}}},
+                        {deleteOne:{"filter":{author:"mary"}}}
+                    ]);
+​
+Note: In bulkWrite(), you can use:
+                                    insertOne
+                                    updateOne
+                                    updateMany
+                                    deleteOne
+                                    deleteMany
+                                    replaceOne
+​
+Note: Create an "articles" collection inside the "inventory" database, then insert documents
+db.articles.insertMany(
+[{"author" : "dave", "score" : 80, "views" : 100},
+{"author" : "leo", "score" : 85, "views" : 521 },
+{"author" : "tom", "score" : 60, "views" : 1000 },
+{"author" : "john", "score" : 55, "views" : 5000 },
+{"author" : "mary", "score" : 60, "views" : 50 },
+{"author" : "ali", "score" : 94, "views" : 999 }]);
+​
+Note: Create an "stories" collection inside the "inventory" database, then insert documents
+db.stories.insertMany(
+[{"author" : "dave", "score" : 75, "views" : 200 },
+{"author" : "chris", "score" : 90, "views" : 100 },
+{"author" : "ali", "score" : 35, "views" : 3000 },
+{"author" : "mary", "score" : 80, "views" : 350 },
+{"author" : "veli", "score" : 54, "views" : 333 },
+{"author" : "ocean", "score" : 97, "views" : 2000 }]);
+​
+EXAMPLE: Display all documents from both of the collections, sort the documents according to the views (FULL JOIN)
+db.articles.aggregate([
+    {$unionWith:{coll:"stories"}},
+    {$project:{_id:0}},
+    {$sort:{author:1}}
+]);
+​
+EXAMPLE: Display the sum of article and story views for every author (FULL JOIN)
+db.articles.aggregate([
+    {$unionWith:{coll:"stories"}},
+    {$group:{_id:"$author", totalViews:{$sum:"$views"}}},
+    {$sort:{totalViews:-1}}
+]);
+​
+EXAMPLE: Display the sum of article and story views for every author in articles document (LEFT or RIGHT JOIN)
+db.articles.aggregate([
+                        {$lookup:{
+                                    from:"stories",
+                                    localField:"author",
+                                    foreignField:"author",
+                                    as:"doc"
+                                 }
+                        },
+                        {$unwind:{
+                                    path:"$doc", preserveNullAndEmptyArrays:true
+                                 }
+                        },
+                        {$project:{ 
+                                    value:{$add:["$views", {$ifNull:["$doc.views", 0]}]},
+                                    _id:0, author:1
+                                  }
+                        }
+                      ]);

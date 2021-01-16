@@ -1,0 +1,96 @@
+1. How to create DB
+    use inventory ==> switched to db inventory
+2. How to see which DB are you inventory
+    db ==> inventory
+3. How to see all DBs on terminal
+    show dbs; ==> admin   0.000GB
+                  config  0.000GB
+                  local   0.000GB
+
+4. How to drop DB
+    db.dropDatabase();  ==> { "ok" : 1 }
+
+5. How to add a collection into a DB
+    db.createCollection("products");
+
+6. How to drop a collection
+    db.products.drop(); ==> drop products collection ==> return true
+
+7. How to insert Document into a collection
+    a) db.prices.insertOne({ "product_name":"Laptop", "price":800, "tax":32 });
+
+8. How to insert multiple Documents
+    db.prices.insertMany([{ "product_name":"Laptop", "price" : 800, "tax": 32},{"product_name":"TV", "price + tax":345}]);
+    Note: Do not forget use the brackets ==> [ ]
+
+9. How to insert single or multiple documents by using same method
+    db.price.insert();
+
+11. How to fetch documents from a collection
+    db.prices.find(); ==> It fetchs all documents
+    db.prices.find().pretty(); ==>  It fetchs all documents in JSON pretty format
+
+12. var now1 = new Date();   //GMT Time
+    db.prices.insert({"current_date" : now});
+
+
+    var now2 = ISODate();
+    db.prices.insert({"current_date" : now2});
+
+    var now3 = ISODate();
+    var month = now3.getMonth();
+    db.prices.insert({"month": month});
+
+ 13.   How to insert past date by using ISODate();
+        db.prices.insert({"price":1234,"past_date":ISODate("2020-11-23")});
+
+14. How to READ Documents in MongoDb
+    a. To read all documents ==> db.prices.find();
+    b. To read first 2 record ==> db.prices.find().pretty().limit(2);
+    c. To read 2. and 3. documents ==> db.prices.find().pretty().skip(1).limit(2);
+    d. To read first one ==> db.prices.find().pretty().limit(1);
+                        ==> db.prices.findOne();
+    e. read document name is Laptop and price is 750
+                ==>db.prices.find({$and : [{"product_name":"Laptop"}, {"price":750}]});
+
+    f. read document name is Laptop or price is 350         
+                ==> db.prices.find({$or : [{"product_name":"Laptop"},{"price + tax":350}]});
+
+    g. to read product name is TV
+                db.prices.find({"product_name" : "TV"});
+
+    h. read just prices of TV
+            db.prices.find({"product_name" : "TV"},{"price + tax":1, "_id":0});
+        
+        to read price and tax of laptops
+            db.prices.find({"product_name":  "Laptop"},{"price":1,"_id":0,"tax":1});
+
+    i. To read documents in ascending order or descending order
+            
+            db.prices.find({"product_name" : "Laptop"}, {"price": 1, "_id": 0, "tax": 1}).sort({"price":1});
+            db.prices.find({"product_name" : "Laptop"}, {"price": 1, "_id": 0, "tax": 1}).sort({"price":-1});
+
+
+ j. comprassion operator
+    Equality ==> $eq 
+    Less than ==> $lt 
+    Grater than ==> $gt 
+
+    Less than or equal ==> $lte 
+    grater than equal ==> $gte 
+    Not Equality ==> $ne ın an array ==> $in  
+    Not in An array ==> $nin
+
+    Ex: Fetch documents whose prices are equal to 750
+        db.prices.find({price:{$eq:750}});
+
+    Ex: less then 750
+        db.prices.find({price:{$lte:750}});
+
+    Ex: grtaer then or equal
+        db.prices.find({price:{$gte:750}});
+
+    Ex: Fetch documents whose prices are one of the 600,123,750
+        db.prices.find({price:{$in:[600, 123, 750]}});
+
+        

@@ -1,0 +1,87 @@
+1. findOneReplace()
+            ==> ıt returns original documents
+            ==> t applies to first value that met the criteria
+
+   Ex:Find the documents whose qty's are less than 20 
+        then replace Ali Can for member and 80 for qty.
+
+        db.members.findOneAndReplace({"qty":{$lt:20}}, {"member":"Ali Can", "qty":80});
+
+    Ex: find the document whose qty are grater than 20 and 
+        change the member of document whose qty is the lowest to "Winner"    
+
+        db.members.findOneAndReplace({"qty":{$gt:20}}, {"member":"Winner"},{sort:{"qty":1}});
+
+    Ex:Find the documents whose qty's are greater than 20 
+        and change the member of document whose qty is the highest to "Super"
+
+        db.members.findOneAndReplace({"qty":{$gt:20}},{"member":"Super"},{sort:{"qty":-1}});
+
+2. FindOneAndUpdate();
+    db.grades.findOneAndUpdate({"assignment":{$eq:5}}, {$inc:{"points":75}},{returnNewDocument:true});
+
+    Ex: find the document whose assignment is 3 then update name to "lazy boy"
+    db.gardes.findOneAndUpdate({"assignment":{$eq:3}},{$set:{"name":"Lazy boy"}},{returnNewDocument:true});
+
+    Ex: Update the points of document whose is 7 to 33
+    db.grades.findOneAndUpdate({"assignment":7},{$set:{"points":7,"name":"Veli Han"}},{upsert:true,returnNewDocument:true});
+
+    db.grades.findOneAndReplace({"assignment":7},{"points":7,"name":"Veli Han"},{upsert:true, returnNewDocument:true});
+
+    Ex: Update the points of a document whose assignment is 7 to 33 and update the name to "Veli Han"
+    db.grades.findOneAndUpdate({"assignment":7},{$set:{"points":33, "name":"Veli Han"}},{upsert:true, returnNewDocument:true}); 
+​
+    db.grades.findOneAndReplace({"assignment":8},{"points":33, "name":"Veli Han"},{upsert:true, returnNewDocument:true}); 
+​
+    Note: "upsert:true" creates the document if it does not exist when you use findOneAndUpdate() or findOneAndReplace() 
+    Note: findOneAndUpdate() and findOneAndReplace() methods return the old document. If you want to see new document
+          you should type "returnNewDocument:true".  
+
+
+3. How to delete a document ==> deleteone(), deleteMany(), remove()
+   a. db.grades.deleteOne({"name":"A. MacDyver"});
+   b. db.grades.deleteMany({"assignment":2});
+   c. db.grades.deleteMany({"assignment":5});
+   d. db.grades.deleteMany({});
+   e. db.gardes.remove({"name":"A. MacDyver"});
+
+   Note: Remove() methods works like deleteMany()
+
+4. How to update multiple documents 
+    ==> update() --> If you dont use mlti:true , 
+                        it will update JUST the first document
+    
+    Ex: Update assignment to 10 if the point are grater than or equal to 20
+        db.grades.update({"points":{$gte:20}},{$set:{"assignment":10}},{multi:true})
+
+    ==> updateOne() --> it will update JUST the first document 
+
+    Ex: Update points of the first document to 23 if the assignment is 2
+    db.grades.updateOne({"assignment":2},{$set:{"points":23}}) 
+
+    ==> updateMany() --> it will update all matched document
+    Ex: update all points to 55 if assignment is 10
+    db.grades.updateMany({"assignment":10},{$set:{"points":55}});
+
+    Ex: update point 77 if the assignment is 21
+    db.grades.update({"assignment":21},{$set:{"points":77}},{upsert:true});
+ 
+ 5. Aggregation is MongoDb
+    Ex: Find the Total point for every assignment
+        var pipeline = [ {$match:{}}, {$group: {"_id":"$assignment", total:{$sum:"$points"}} } ];
+        db.grades.aggregate(pipeline);
+
+    Ex: Find the avarage points for every assignment
+        var pipeline = [ {$match:{}}, {$group: {"_id":"$assignment", average:{$avg:"$points"}} } ];
+        db.grades.aggregate(pipeline);
+
+    Ex: Ex: Find the min points for every assignment
+        var pipeline = [ {$match:{}}, {$group: {"_id":"$assignment", minimum:{$min:"$points"}} } ];
+        db.grades.aggregate(pipeline);
+
+    Ex: Find the average points of the records if the assignment less then 20
+        var pipeline = [ {$match:{assignment:{$lt:20}}}, {$group: {"_id":"$assignment", average:{$avg:"$points"}}}];
+        db.grades.aggregate(pipeline);
+
+    Ex: Find the documnets which contains "Stilies" in names value
+        db.grades.find({"name":{$regex:"Stiles"}});
